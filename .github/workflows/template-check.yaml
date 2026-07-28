@@ -97,6 +97,8 @@ jobs:
           compare tests/testthat.R tests/testthat.R
           compare tests/testthat/test-data.R tests/testthat/test-data.R
           compare DESCRIPTION DESCRIPTION
+          compare NEWS.md NEWS.md
+          compare LICENSE LICENSE
           compare _pkgdown.yml _pkgdown.yml
           compare README.qmd README.qmd
           compare .Rbuildignore dot-Rbuildignore
