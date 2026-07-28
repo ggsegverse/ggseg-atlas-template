@@ -1,0 +1,105 @@
+# Checks the template itself, by rendering it into a real package and
+# checking that. The placeholder sources in this repo are not a valid R
+# package, so running R CMD check on them directly is meaningless — every
+# other workflow here ships to generated packages and is skipped on the
+# template (see the `if:` guard in each).
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+name: template-check
+
+permissions:
+  contents: read
+
+jobs:
+  render-and-check:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      _R_CHECK_FORCE_SUGGESTS_: false
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: posit-dev/setup-air@v1
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: >
+            any::rcmdcheck,
+            any::roxygen2,
+            any::lintr,
+            any::testthat,
+            ggsegverse/ggseg.formats
+
+      - name: Render template into a package
+        run: |
+          mkdir -p ../generated
+          Rscript .github/scripts/render-template.R demoatlas ../generated
+          Rscript .github/scripts/stub-atlas.R demoatlas ../generated
+          Rscript -e 'roxygen2::roxygenise("../generated")'
+
+      - name: Check tidyverse style of the generated package
+        run: air format --check ../generated
+
+      - name: Install the generated package
+        # object_usage_linter resolves the atlas object out of the installed
+        # namespace; without this it cannot see R/sysdata.rda.
+        run: R CMD INSTALL ../generated
+
+      - name: Lint the generated package
+        run: lintr::lint_package("../generated")
+        shell: Rscript {0}
+        env:
+          LINTR_ERROR_ON_LINT: true
+
+      - name: R CMD check the generated package
+        run: |
+          rcmdcheck::rcmdcheck(
+            "../generated",
+            args = "--no-manual",
+            error_on = "note"
+          )
+        shell: Rscript {0}
+
+  fallback-in-sync:
+    # The same scaffold ships twice: here, and bundled inside ggseg.extra as
+    # the offline fallback for setup_atlas_repo(). They drifted apart once
+    # already, so the two copies are compared on every change.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compare scaffold against the ggseg.extra fallback
+        run: |
+          base="https://raw.githubusercontent.com/ggsegverse/ggseg.extra/main/inst/templates/atlas-fallback"
+          status=0
+          compare() {
+            curl -fsSL "$base/$2" -o /tmp/fallback-copy || {
+              echo "::error::could not fetch $2 from ggseg.extra"; status=1; return
+            }
+            if ! diff -u "$1" /tmp/fallback-copy; then
+              echo "::error file=$1::$1 has drifted from the ggseg.extra fallback"
+              status=1
+            fi
+          }
+          compare data-raw/create-atlas.R data-raw/create-atlas.R
+          compare R/data.R R/data.R
+          compare R/PKGNAME-package.R R/PKGNAME-package.R
+          compare tests/testthat.R tests/testthat.R
+          compare tests/testthat/test-data.R tests/testthat/test-data.R
+          compare DESCRIPTION DESCRIPTION
+          compare _pkgdown.yml _pkgdown.yml
+          compare README.qmd README.qmd
+          compare .Rbuildignore dot-Rbuildignore
+          compare .gitignore dot-gitignore
+          compare .lintr dot-lintr
+          exit $status

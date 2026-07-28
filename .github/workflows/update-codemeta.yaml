@@ -12,15 +12,18 @@ permissions: read-all
 
 jobs:
   update-codemeta:
+    # The repository check skips the template itself, where the placeholder
+    # sources are not a valid R package. Runs normally in generated packages.
+    if: >-
+      github.repository != 'ggsegverse/ggseg-atlas-template' &&
+      !contains(github.event.head_commit.message, 'cm-skip')
     runs-on: ubuntu-latest
-
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     permissions:
       contents: write
 
-    if: "!contains(github.event.head_commit.message, 'cm-skip')"
     steps:
       - uses: actions/checkout@v4
 
