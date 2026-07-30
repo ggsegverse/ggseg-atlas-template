@@ -8,6 +8,9 @@ name: R-CMD-check
 
 jobs:
   R-CMD-check:
+    # Skipped on the template repo itself, where the placeholder sources
+    # are not a valid R package. Runs normally in generated packages.
+    if: github.repository != 'ggsegverse/ggseg-atlas-template'
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})

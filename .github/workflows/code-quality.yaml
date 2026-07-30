@@ -11,6 +11,9 @@ permissions:
 
 jobs:
   lint:
+    # Skipped on the template repo itself, where the placeholder sources
+    # are not a valid R package. Runs normally in generated packages.
+    if: github.repository != 'ggsegverse/ggseg-atlas-template'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}

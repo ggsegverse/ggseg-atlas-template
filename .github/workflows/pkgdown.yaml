@@ -11,6 +11,9 @@ name: pkgdown
 
 jobs:
   pkgdown:
+    # Skipped on the template repo itself, where the placeholder sources
+    # are not a valid R package. Runs normally in generated packages.
+    if: github.repository != 'ggsegverse/ggseg-atlas-template'
     runs-on: ubuntu-latest
     concurrency:
       group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
