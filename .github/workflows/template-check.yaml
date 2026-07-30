@@ -3,6 +3,12 @@
 # package, so running R CMD check on them directly is meaningless — every
 # other workflow here ships to generated packages and is skipped on the
 # template (see the `if:` guard in each).
+#
+# This workflow is the mirror image: it runs ONLY on the template. A package
+# generated from this template has no placeholders left to substitute and no
+# reason to diff itself against ggseg.extra, so both jobs are guarded off
+# there. If you are reading this in your own atlas package, this file and
+# .github/scripts/ are inert leftovers from the template and safe to delete.
 
 on:
   push:
@@ -18,6 +24,7 @@ permissions:
 
 jobs:
   render-and-check:
+    if: github.repository == 'ggsegverse/ggseg-atlas-template'
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -74,6 +81,7 @@ jobs:
     # The same scaffold ships twice: here, and bundled inside ggseg.extra as
     # the offline fallback for setup_atlas_repo(). They drifted apart once
     # already, so the two copies are compared on every change.
+    if: github.repository == 'ggsegverse/ggseg-atlas-template'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
