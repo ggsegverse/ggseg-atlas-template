@@ -23,6 +23,21 @@ class. The atlas objects work with both `ggseg::geom_brain()` (2D) and
 - Full check: `devtools::check()`
 - Build pkgdown site: `pkgdown::build_site()`
 
+## Continuous integration
+
+CI is not stored in this template. Add it with:
+
+```r
+ggseg.extra::use_atlas_github_actions()
+```
+
+That writes caller stubs into `.github/workflows/` for the reusable workflows
+in [ggsegverse/.github](https://github.com/ggsegverse/.github), so the package
+tracks the shared CI instead of carrying its own copy.
+`ggseg.extra::setup_atlas_repo()` runs it for you; call it directly if you
+created the package through GitHub's "Use this template", or want to add a
+workflow you skipped earlier.
+
 ## Conventions
 
 - No code comments except for necessary workarounds
