@@ -1,14 +1,19 @@
 # Checks the template itself, by rendering it into a real package and
 # checking that. The placeholder sources in this repo are not a valid R
-# package, so running R CMD check on them directly is meaningless — every
-# other workflow here ships to generated packages and is skipped on the
-# template (see the `if:` guard in each).
+# package, so running R CMD check on them directly is meaningless.
 #
-# This workflow is the mirror image: it runs ONLY on the template. A package
-# generated from this template has no placeholders left to substitute and no
-# reason to diff itself against ggseg.extra, so both jobs are guarded off
-# there. If you are reading this in your own atlas package, this file and
-# .github/scripts/ are inert leftovers from the template and safe to delete.
+# This is the only workflow in this repo. The workflows a generated atlas
+# package runs are not stored here at all -- they come from
+# ggseg.extra::use_atlas_github_actions(), which writes caller stubs for the
+# reusable workflows in ggsegverse/.github. Keeping them out of the template
+# means a new package gets the current shared CI rather than a copy that was
+# already stale.
+#
+# The `if:` guards below restrict both jobs to this repo, so a package created
+# through GitHub's "Use this template" (which copies .github/ verbatim) does
+# not try to run the template's own checks. If you are reading this in your
+# own atlas package, this file and .github/scripts/ are inert and safe to
+# delete -- then run use_atlas_github_actions() to get real CI.
 
 on:
   push:
