@@ -45,12 +45,22 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          # The last four mirror the scaffold's Config/Needs/lint: they are
+          # what data-raw/create-atlas.R loads. A generated package's own lint
+          # job picks them up from there via `needs: lint`, but this job
+          # installs against the template's placeholder DESCRIPTION, so they
+          # are listed by hand. Without them the lint step below reports every
+          # call through those packages as an undefined global.
           packages: >
             any::rcmdcheck,
             any::roxygen2,
             any::lintr,
             any::testthat,
-            ggsegverse/ggseg.formats
+            ggsegverse/ggseg.formats,
+            any::dplyr,
+            any::future,
+            any::progressr,
+            ggsegverse/ggseg.extra
 
       - name: Render template into a package
         run: |
