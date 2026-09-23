@@ -100,8 +100,8 @@ progressr::handlers(global = TRUE)
 # =============================================================================
 # Uncomment this section for subcortical parcellations.
 # `input_lut` takes a FreeSurfer-style colour lookup table path, or a
-# data.frame with a `region` column plus colour columns. Use `read_lut()` if
-# you want to inspect or edit the table before passing it in.
+# data.frame with columns `idx`, `label`, `R`, `G`, `B` and `A`. Use
+# `read_lut()` if you want to inspect or edit the table before passing it in.
 
 # ATLASNAME <- create_subcortical_from_volume(
 #   input_volume = here::here("data-raw", "ATLASNAME.nii.gz"),
@@ -142,7 +142,7 @@ progressr::handlers(global = TRUE)
 #   input_aseg = here::here("data-raw", "aseg.mgz"),
 #   atlas_name = "ATLASNAME",
 #   output_dir = here::here("data-raw"),
-#   tube_radius = 5,
+#   tube_opts = list(tube_radius = 5),
 #   verbose = TRUE
 # )
 
@@ -151,6 +151,18 @@ progressr::handlers(global = TRUE)
 # =============================================================================
 # Uncomment this section for whole-brain volumetric parcellations that
 # contain both cortical and subcortical regions.
+#
+# The lookup table needs a `type` column saying which labels are cortical,
+# subcortical and cerebellar; without one the pipeline guesses from how much
+# surface each label covers, and warns that it did. `lut_classify_anatomy()`
+# works the column out from FreeSurfer's `aparc+aseg`. Run it once and commit
+# the table it returns.
+
+# lut <- lut_classify_anatomy(
+#   here::here("data-raw", "ATLASNAME.nii.gz"),
+#   here::here("data-raw", "ATLASNAME_LUT.txt")
+# )
+# write_lut(lut, here::here("data-raw", "ATLASNAME_LUT.txt"))
 
 # ATLASNAME <- create_wholebrain_from_volume(
 #   input_volume = here::here("data-raw", "ATLASNAME.nii.gz"),
@@ -163,15 +175,15 @@ progressr::handlers(global = TRUE)
 # =============================================================================
 # SMOOTH AND SIMPLIFY (optional)
 # =============================================================================
-# The pipelines return raw, unsmoothed polygons. Smoothing is a separate
-# post-processing step, so you can tune `keep` without re-running the
-# pipeline. `exclude = "cortex_"` keeps the brain outline crisp.
+# The pipelines return raw, unsmoothed polygons. Tidying them is a separate
+# post-processing step in two parts: atlas_simplify() drops vertices and
+# atlas_smooth() rounds off what is left, so you can tune either without
+# re-running the pipeline. `exclude = "cortex_"` keeps the brain outline
+# crisp.
 
-# ATLASNAME <- atlas_smooth(
-#   ATLASNAME,
-#   keep = 0.2,
-#   exclude = "cortex_"
-# )
+# ATLASNAME <- ATLASNAME |>
+#   atlas_simplify(keep = 0.2, exclude = "cortex_") |>
+#   atlas_smooth(exclude = "cortex_")
 
 # =============================================================================
 # CLEAN UP REGION NAMES (optional)
